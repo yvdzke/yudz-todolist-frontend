@@ -151,9 +151,10 @@
       const loginForm = document.getElementById("login-form");
       const errorMsg = document.getElementById("error-msg");
       const API_URL =
-        window.location.hostname === "localhost"
-          ? "http://localhost:5000"
-          : "/api";
+        window.location.hostname === "localhost" ||
+        window.location.hostname === "127.0.0.1"
+          ? "http://localhost:5000/api"
+          : "https://yudz-todolist-backend.vercel.app/api";
 
       loginForm.addEventListener("submit", async (e) => {
         e.preventDefault();
