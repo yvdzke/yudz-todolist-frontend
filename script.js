@@ -106,9 +106,12 @@ const logout = () => {
 // ======================================================
 // UPDATE BAGIAN FETCH TASKS INI
 // ======================================================
+// ======================================================
+// UPDATE FUNGSI FETCH TASKS (LEBIH PINTAR & ANTI-CACHE)
+// ======================================================
 const fetchTasks = async () => {
   try {
-    // Tambahkan timestamp biar browser GAK ngebaca cache lama
+    // 1. Tambah timestamp (?t=...) biar browser TIDAK pakai data cache lama
     const response = await fetch(`${API_URL}/tasks?t=${new Date().getTime()}`, {
       method: "GET",
       headers: getHeaders(),
@@ -121,26 +124,33 @@ const fetchTasks = async () => {
 
     const data = await response.json();
 
-    // --- DEBUG: Lihat apa yang dikirim backend ---
-    console.log("[GET] Data dari Server:", data);
+    // Debugging: Cek apa isi data mentah dari server di Console
+    console.log("[DEBUG GET] Data Server:", data);
 
     tasks = data.map((dbTask) => {
-      // LOGIKA "ROBUST" (Tahan Banting)
-      // Apapun formatnya (1, "true", "t", true), kita paksa jadi Boolean TRUE
-      const isCompleted =
-        dbTask.is_completed === true ||
-        dbTask.is_completed === "true" ||
-        dbTask.is_completed === 1 ||
-        dbTask.is_completed === "t";
+      // 2. LOGIKA ROBUST (Tahan Banting)
+      // Cek segala kemungkinan format TRUE dari database
+      const isCompleted = 
+          dbTask.is_completed === true || 
+          dbTask.is_completed === "true" || 
+          dbTask.is_completed === 1 || 
+          dbTask.is_completed === "t";
 
       return {
         id: dbTask.task_id,
         task: dbTask.task_name,
         category: dbTask.category,
         date: dbTask.task_date ? dbTask.task_date.split("T")[0] : "",
-        completed: isCompleted, // <--- Pakai hasil konversi di atas
+        completed: isCompleted // <--- Pakai hasil cek di atas
       };
     });
+
+    renderTasks();
+    updateTotals();
+  } catch (err) {
+    console.error("Gagal ambil task:", err);
+  }
+};
 
     renderTasks();
     updateTotals();
