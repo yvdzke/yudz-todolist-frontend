@@ -107,12 +107,13 @@ const fetchTasks = async () => {
 
     const data = await response.json();
 
+    // Pastikan completed dibaca sebagai boolean
     tasks = data.map((dbTask) => ({
       id: dbTask.task_id,
       task: dbTask.task_name,
       category: dbTask.category,
       date: dbTask.task_date ? dbTask.task_date.split("T")[0] : "",
-      completed: dbTask.is_completed,
+      completed: Boolean(dbTask.is_completed), // Konversi ke boolean agar aman
     }));
 
     renderTasks();
@@ -143,7 +144,8 @@ const addTask = async (e) => {
           task_name: taskText,
           category: category,
           task_date: date,
-          is_completed: false,
+          // Jangan kirim is_completed di sini agar status tidak tereset,
+          // atau ambil status lama dari array tasks jika perlu.
         }),
       });
       // Reset Edit Mode
@@ -279,23 +281,37 @@ const renderTasks = () => {
       checkbox.id = task.id;
       checkbox.checked = task.completed;
 
-      checkbox.addEventListener("change", async () => {
-        const newStatus = !task.completed;
+      // --- PERBAIKAN PENTING DI SINI ---
+      checkbox.addEventListener("change", async (e) => {
+        // Ambil status TERBARU langsung dari elemen checkbox
+        const newStatus = e.target.checked;
+
+        console.log(`Mengupdate Task ID ${task.id} menjadi:`, newStatus);
+
         try {
-          await fetch(`${API_URL}/tasks/${task.id}`, {
+          const response = await fetch(`${API_URL}/tasks/${task.id}`, {
             method: "PUT",
             headers: getHeaders(),
             body: JSON.stringify({
               task_name: task.task,
               category: task.category,
               task_date: task.date,
-              is_completed: newStatus,
+              is_completed: newStatus, // Kirim true/false
             }),
           });
+
+          if (!response.ok) {
+            throw new Error("Gagal update status di server");
+          }
+
+          console.log("Update Sukses, Refreshing tasks...");
+          // Refresh data agar sinkron dengan database
           fetchTasks();
         } catch (err) {
-          console.error(err);
+          console.error("Error update checklist:", err);
+          // Jika gagal, kembalikan status checkbox ke posisi semula
           checkbox.checked = !newStatus;
+          alert("Gagal mengupdate status task. Cek koneksi atau console.");
         }
       });
 
