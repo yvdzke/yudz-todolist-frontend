@@ -100,12 +100,9 @@ const logout = () => {
   window.location.href = "login.html";
 };
 
-// ======================================================
-// UPDATE FUNGSI FETCH TASKS (LEBIH PINTAR & ANTI-CACHE)
-// ======================================================
 const fetchTasks = async () => {
   try {
-    // 1. Tambah timestamp (?t=...) biar browser TIDAK pakai data cache lama
+    // Pakai timestamp agar tidak kena cache
     const response = await fetch(`${API_URL}/tasks?t=${new Date().getTime()}`, {
       method: "GET",
       headers: getHeaders(),
@@ -118,24 +115,38 @@ const fetchTasks = async () => {
 
     const data = await response.json();
 
-    // Debugging: Cek apa isi data mentah dari server di Console
-    console.log("[DEBUG GET] Data Server:", data);
+    // --- CCTV LOGGING (Lihat ini di Console Browser) ---
+    console.log("=== TOTAL DATA DITERIMA ===", data.length);
+
+    if (data.length > 0) {
+      // Kita cek task pertama sebagai sampel
+      const sample = data[0];
+      console.log(">>> CONTOH DATA MENTAH DARI SERVER:", sample);
+      console.log(
+        ">>> Cek is_completed:",
+        sample.is_completed,
+        "(Tipe:",
+        typeof sample.is_completed,
+        ")",
+      );
+    }
+    // ---------------------------------------------------
 
     tasks = data.map((dbTask) => {
-      // 2. LOGIKA ROBUST (Tahan Banting)
-      // Cek segala kemungkinan format TRUE dari database
+      // Logika konversi yang super aman
+      // Kita anggap TRUE jika: boolean true, string "true", string "t", atau angka 1
       const isCompleted =
         dbTask.is_completed === true ||
         dbTask.is_completed === "true" ||
-        dbTask.is_completed === 1 ||
-        dbTask.is_completed === "t";
+        dbTask.is_completed === "t" ||
+        dbTask.is_completed === 1;
 
       return {
         id: dbTask.task_id,
         task: dbTask.task_name,
         category: dbTask.category,
         date: dbTask.task_date ? dbTask.task_date.split("T")[0] : "",
-        completed: isCompleted, // <--- Pakai hasil cek di atas
+        completed: isCompleted,
       };
     });
 
