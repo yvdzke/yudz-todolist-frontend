@@ -1,4 +1,6 @@
-// --- 1. CEK LOGIN (Wajib Paling Atas) ---
+// ======================================================
+// 1. CEK LOGIN & KONFIGURASI
+// ======================================================
 const token = localStorage.getItem("token");
 const currentUser = localStorage.getItem("username");
 
@@ -6,7 +8,7 @@ if (!token) {
   window.location.href = "login.html";
 }
 
-// --- UPDATE NAMA DI UI ---
+// Update Nama User
 const userNameDisplay = document.getElementById("user-name-display");
 if (userNameDisplay && currentUser) {
   userNameDisplay.innerText = currentUser;
@@ -18,6 +20,9 @@ const API_URL =
     ? "http://localhost:5000/api"
     : "https://yudz-todolist-backend.vercel.app/api";
 
+// ======================================================
+// 2. STATE & DATA
+// ======================================================
 let tasks = [];
 let editId = null;
 
@@ -36,7 +41,9 @@ let categories = JSON.parse(localStorage.getItem("categories")) || [
 
 let selectedCategory = categories[0];
 
-// --- 3. DOM ELEMENTS ---
+// ======================================================
+// 3. DOM ELEMENTS
+// ======================================================
 const wrapper = document.querySelector(".wrapper");
 const menuBtn = document.querySelector(".menu-btn");
 const backBtn = document.querySelector(".back-btn");
@@ -55,7 +62,7 @@ const totalTasks = document.getElementById("total-tasks");
 const numTasks = document.getElementById("num-tasks");
 const categoryImg = document.getElementById("category-img");
 
-// Variabel untuk Edit Kategori
+// Edit Kategori Elements
 const editCatWrapper = document.querySelector(".edit-category");
 const editCatInput = document.getElementById("edit-cat-input");
 const editCatImg = document.getElementById("edit-cat-img");
@@ -63,7 +70,9 @@ const saveEditBtn = document.querySelector(".save-edit-btn");
 const cancelEditBtn = document.querySelector(".cancel-edit-btn");
 let categoryToEdit = null;
 
-// --- 4. FUNGSI BANTUAN ---
+// ======================================================
+// 4. HELPER FUNCTIONS
+// ======================================================
 const getHeaders = () => {
   return {
     "Content-Type": "application/json",
@@ -91,8 +100,9 @@ const logout = () => {
   window.location.href = "login.html";
 };
 
-// --- 5. FUNGSI API (FETCH) ---
-
+// ======================================================
+// 5. API REQUESTS
+// ======================================================
 const fetchTasks = async () => {
   try {
     const response = await fetch(`${API_URL}/tasks`, {
@@ -107,13 +117,13 @@ const fetchTasks = async () => {
 
     const data = await response.json();
 
-    // Pastikan completed dibaca sebagai boolean
     tasks = data.map((dbTask) => ({
       id: dbTask.task_id,
       task: dbTask.task_name,
       category: dbTask.category,
       date: dbTask.task_date ? dbTask.task_date.split("T")[0] : "",
-      completed: Boolean(dbTask.is_completed), // Konversi ke boolean agar aman
+      // Pastikan status completed dibaca dengan benar
+      completed: dbTask.is_completed === true || dbTask.is_completed === "true",
     }));
 
     renderTasks();
@@ -136,7 +146,11 @@ const addTask = async (e) => {
 
   try {
     if (editId) {
-      // --- MODE EDIT TASK ---
+      // MODE EDIT TASK
+      // Kita perlu cari status completed yang lama biar gak kereset
+      const oldTask = tasks.find((t) => t.id === editId);
+      const oldStatus = oldTask ? oldTask.completed : false;
+
       await fetch(`${API_URL}/tasks/${editId}`, {
         method: "PUT",
         headers: getHeaders(),
@@ -144,16 +158,14 @@ const addTask = async (e) => {
           task_name: taskText,
           category: category,
           task_date: date,
-          // Jangan kirim is_completed di sini agar status tidak tereset,
-          // atau ambil status lama dari array tasks jika perlu.
+          is_completed: oldStatus,
         }),
       });
-      // Reset Edit Mode
       editId = null;
       addBtn.innerText = "Add";
       document.querySelector(".add-task .heading").innerText = "Add Task";
     } else {
-      // --- MODE ADD TASK ---
+      // MODE CREATE TASK
       await fetch(`${API_URL}/tasks`, {
         method: "POST",
         headers: getHeaders(),
@@ -165,7 +177,7 @@ const addTask = async (e) => {
       });
     }
 
-    // Reset Form & Refresh Data
+    // Reset Form
     taskInput.value = "";
     dateInput.value = "";
     toggleAddTaskForm();
@@ -176,8 +188,9 @@ const addTask = async (e) => {
   }
 };
 
-// --- 6. FUNGSI UI / RENDER ---
-
+// ======================================================
+// 6. RENDER UI FUNCTIONS
+// ======================================================
 const toggleScreen = () => {
   wrapper.classList.toggle("show-category");
 };
@@ -202,7 +215,6 @@ const updateTotals = () => {
   totalTasks.innerHTML = tasks.length;
 };
 
-// Render Categories dengan Tombol Edit
 const renderCategories = () => {
   categoriesContainer.innerHTML = "";
   categories.forEach((category) => {
@@ -212,9 +224,8 @@ const renderCategories = () => {
     const div = document.createElement("div");
     div.classList.add("category");
 
-    // Klik kartu untuk buka halaman task
     div.addEventListener("click", (e) => {
-      if (e.target.closest(".options")) return; // Jangan buka kalau klik ikon edit
+      if (e.target.closest(".options")) return;
 
       if (!isEditMode) {
         wrapper.classList.toggle("show-category");
@@ -243,13 +254,11 @@ const renderCategories = () => {
       </div>
     `;
 
-    // Event Klik Ikon Pensil
     const editBtn = div.querySelector(".edit-btn");
     editBtn.addEventListener("click", () => {
       categoryToEdit = category;
       editCatInput.value = category.title;
       editCatImg.value = category.img;
-
       editCatWrapper.classList.add("active");
       blackBackdrop.classList.add("active");
     });
@@ -280,40 +289,7 @@ const renderTasks = () => {
       checkbox.type = "checkbox";
       checkbox.id = task.id;
       checkbox.checked = task.completed;
-
-      // --- PERBAIKAN PENTING DI SINI ---
-      checkbox.addEventListener("change", async (e) => {
-        // Ambil status TERBARU langsung dari elemen checkbox
-        const newStatus = e.target.checked;
-
-        console.log(`Mengupdate Task ID ${task.id} menjadi:`, newStatus);
-
-        try {
-          const response = await fetch(`${API_URL}/tasks/${task.id}`, {
-            method: "PUT",
-            headers: getHeaders(),
-            body: JSON.stringify({
-              task_name: task.task,
-              category: task.category,
-              task_date: task.date,
-              is_completed: newStatus, // Kirim true/false
-            }),
-          });
-
-          if (!response.ok) {
-            throw new Error("Gagal update status di server");
-          }
-
-          console.log("Update Sukses, Refreshing tasks...");
-          // Refresh data agar sinkron dengan database
-          fetchTasks();
-        } catch (err) {
-          console.error("Error update checklist:", err);
-          // Jika gagal, kembalikan status checkbox ke posisi semula
-          checkbox.checked = !newStatus;
-          alert("Gagal mengupdate status task. Cek koneksi atau console.");
-        }
-      });
+      // PENTING: Kita hapus event listener di sini, dipindah ke Event Delegation di bawah
 
       label.innerHTML = `
         <span class="checkmark">
@@ -352,7 +328,6 @@ const renderTasks = () => {
         taskInput.value = task.task;
         categorySelect.value = task.category.toLowerCase();
         dateInput.value = task.date;
-
         editId = task.id;
         addBtn.innerText = "Save";
         document.querySelector(".add-task .heading").innerText = "Edit Task";
@@ -361,9 +336,7 @@ const renderTasks = () => {
 
       const deleteBtn = div.querySelector(".delete");
       deleteBtn.addEventListener("click", async () => {
-        const confirmDel = confirm("Yakin mau hapus?");
-        if (!confirmDel) return;
-
+        if (!confirm("Yakin mau hapus?")) return;
         try {
           await fetch(`${API_URL}/tasks/${task.id}`, {
             method: "DELETE",
@@ -380,18 +353,17 @@ const renderTasks = () => {
   updateTotals();
 };
 
-// --- 7. SORTABLE JS (Drag & Drop Kategori) ---
+// ======================================================
+// 7. DRAG & DROP + EDIT KATEGORI
+// ======================================================
 let sortableInstance;
-
 const initSortable = () => {
-  const container = document.querySelector(".categories");
-  if (!container) return;
-
-  sortableInstance = new Sortable(container, {
+  if (!categoriesContainer) return;
+  sortableInstance = new Sortable(categoriesContainer, {
     animation: 200,
     delay: 0,
     ghostClass: "sortable-ghost",
-    disabled: true, // DEFAULT MATI
+    disabled: true,
     onEnd: (evt) => {
       const itemToMove = categories[evt.oldIndex];
       categories.splice(evt.oldIndex, 1);
@@ -403,7 +375,6 @@ const initSortable = () => {
 
 const editCatBtn = document.getElementById("edit-cat-btn");
 let isEditMode = false;
-
 if (editCatBtn) {
   editCatBtn.addEventListener("click", () => {
     isEditMode = !isEditMode;
@@ -425,7 +396,6 @@ if (editCatBtn) {
   });
 }
 
-// --- LOGIKA SIMPAN EDIT KATEGORI (MODAL) ---
 saveEditBtn.addEventListener("click", async () => {
   const newName = editCatInput.value;
   const newImg = editCatImg.value;
@@ -438,15 +408,11 @@ saveEditBtn.addEventListener("click", async () => {
       await fetch(`${API_URL}/categories`, {
         method: "PUT",
         headers: getHeaders(),
-        body: JSON.stringify({
-          old_name: oldName,
-          new_name: newName,
-        }),
+        body: JSON.stringify({ old_name: oldName, new_name: newName }),
       });
     }
     categoryToEdit.title = newName;
     categoryToEdit.img = newImg;
-
     saveLocalCategories();
     renderCategories();
 
@@ -454,15 +420,11 @@ saveEditBtn.addEventListener("click", async () => {
       categoryTitle.innerHTML = newName;
       categoryImg.src = `images/${newImg}`;
     }
-
-    // Update juga array tasks lokal biar gak perlu fetch ulang kalo cuma ganti nama
     tasks.forEach((task) => {
       if (task.category.toLowerCase() === oldName.toLowerCase()) {
         task.category = newName;
       }
     });
-
-    // Close
     closeEditModal();
   } catch (err) {
     console.error(err);
@@ -472,13 +434,12 @@ saveEditBtn.addEventListener("click", async () => {
 
 cancelEditBtn.addEventListener("click", closeEditModal);
 
-// --- 8. INITIALIZATION ---
-
+// ======================================================
+// 8. EVENT LISTENER BUTTONS UTAMA
+// ======================================================
 menuBtn.addEventListener("click", toggleScreen);
 backBtn.addEventListener("click", toggleScreen);
 addTaskBtn.addEventListener("click", toggleAddTaskForm);
-
-// Backdrop handle logic: tutup AddTask atau EditCat
 blackBackdrop.addEventListener("click", () => {
   if (editCatWrapper.classList.contains("active")) {
     closeEditModal();
@@ -486,9 +447,7 @@ blackBackdrop.addEventListener("click", () => {
     toggleAddTaskForm();
   }
 });
-
 addBtn.addEventListener("click", addTask);
-
 cancelBtn.addEventListener("click", () => {
   toggleAddTaskForm();
   taskInput.value = "";
@@ -505,5 +464,60 @@ categories.forEach((category) => {
   categorySelect.appendChild(option);
 });
 
+// ======================================================
+// 9. EVENT DELEGATION (CHECKBOX FIX) - TARUH PALING BAWAH
+// ======================================================
+// Ini CCTV global yang memantau setiap klik di area tasks
+tasksContainer.addEventListener("change", async (e) => {
+  // Cek apakah yang diklik adalah input checkbox
+  if (e.target.tagName === "INPUT" && e.target.type === "checkbox") {
+    const checkbox = e.target;
+    const taskId = parseInt(checkbox.id); // ID Task
+    const newStatus = checkbox.checked; // Status Baru
+
+    console.log(
+      `[CCTV] Klik pada Task ID: ${taskId}, Status Jadi: ${newStatus}`,
+    );
+
+    // Cari data task lengkap di memory lokal
+    const currentTask = tasks.find((t) => t.id === taskId);
+
+    if (!currentTask) {
+      console.error("Task tidak ditemukan di memory!");
+      return;
+    }
+
+    try {
+      // Kirim request ke backend
+      const response = await fetch(`${API_URL}/tasks/${taskId}`, {
+        method: "PUT",
+        headers: getHeaders(),
+        body: JSON.stringify({
+          task_name: currentTask.task,
+          category: currentTask.category,
+          task_date: currentTask.date,
+          is_completed: newStatus, // Kirim status baru
+        }),
+      });
+
+      if (!response.ok) throw new Error("Gagal update di server");
+
+      const result = await response.json();
+      console.log("[API] Sukses update:", result);
+
+      // Update data lokal biar sinkron tanpa fetch ulang (opsional)
+      currentTask.completed = newStatus;
+      updateTotals();
+    } catch (err) {
+      console.error("[ERROR] Gagal save:", err);
+      checkbox.checked = !newStatus; // Balikin centang kalau error
+      alert("Gagal menyimpan status. Cek koneksi.");
+    }
+  }
+});
+
+// ======================================================
+// 10. INITIALIZATION
+// ======================================================
 fetchTasks();
 initSortable();
