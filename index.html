@@ -7,6 +7,7 @@
     <link rel="icon" type="image/png" sizes="32x32" href="favicon-32x32.png" />
     <link rel="icon" type="image/png" sizes="16x16" href="favicon-16x16.png" />
     <link rel="manifest" href="site.webmanifest" />
+
     <link rel="stylesheet" href="style.css" />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
@@ -14,7 +15,8 @@
       href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap"
       rel="stylesheet"
     />
-    <title>yudz-todolist</title>
+
+    <title>Yudz Todo List</title>
   </head>
   <body>
     <div class="wrapper">
@@ -41,11 +43,11 @@
           <div class="welcome">
             <div class="content">
               <h1>Hello, <span id="user-name-display">User</span></h1>
-              <p>Present Task <span id="total-tasks">0</span> tasks</p>
+              <p>Today you have <span id="total-tasks">0</span> tasks</p>
             </div>
             <div class="img">
               <div class="backdrop"></div>
-              <img src="images/boy.png" alt="" />
+              <img src="images/boy.png" alt="Profile" />
             </div>
           </div>
         </div>
@@ -78,7 +80,6 @@
               font-weight: 600;
               cursor: pointer;
               font-family: &quot;Poppins&quot;, sans-serif;
-              font-size: 0.9rem;
             "
           >
             Edit Order
@@ -125,13 +126,15 @@
             </svg>
           </div>
         </div>
+
         <div class="category-details">
           <img src="images/boy.png" alt="" id="category-img" />
           <div class="details">
-            <p id="num-tasks">8 tasks</p>
+            <p id="num-tasks">0 tasks</p>
             <h1 id="category-title">Personal</h1>
           </div>
         </div>
+
         <div class="tasks-wrapper">
           <div class="tasks"></div>
         </div>
@@ -157,18 +160,22 @@
       <div class="black-backdrop"></div>
 
       <div class="add-task">
-        <div class="add-task-backdrop"></div>
         <h1 class="heading">Add Task</h1>
         <div class="input-group">
-          <label for="task-input"> Task </label>
-          <input type="text" id="task-input" required />
+          <label for="task-input">Task Name</label>
+          <input
+            type="text"
+            id="task-input"
+            placeholder="What to do?"
+            required
+          />
         </div>
         <div class="input-group">
-          <label for="category-select"> Category </label>
+          <label for="category-select">Category</label>
           <select id="category-select"></select>
         </div>
         <div class="input-group">
-          <label for="date-input">Date</label>
+          <label for="date-input">Due Date</label>
           <input type="date" id="date-input" />
         </div>
         <div class="btns">
@@ -178,7 +185,6 @@
       </div>
 
       <div class="edit-category">
-        <div class="add-task-backdrop"></div>
         <h1 class="heading">Edit Category</h1>
         <div class="input-group">
           <label for="edit-cat-input">Category Name</label>
