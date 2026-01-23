@@ -103,9 +103,13 @@ const logout = () => {
 // ======================================================
 // 5. API REQUESTS
 // ======================================================
+// ======================================================
+// UPDATE BAGIAN FETCH TASKS INI
+// ======================================================
 const fetchTasks = async () => {
   try {
-    const response = await fetch(`${API_URL}/tasks`, {
+    // Tambahkan timestamp biar browser GAK ngebaca cache lama
+    const response = await fetch(`${API_URL}/tasks?t=${new Date().getTime()}`, {
       method: "GET",
       headers: getHeaders(),
     });
@@ -117,14 +121,26 @@ const fetchTasks = async () => {
 
     const data = await response.json();
 
-    tasks = data.map((dbTask) => ({
-      id: dbTask.task_id,
-      task: dbTask.task_name,
-      category: dbTask.category,
-      date: dbTask.task_date ? dbTask.task_date.split("T")[0] : "",
-      // Pastikan status completed dibaca dengan benar
-      completed: dbTask.is_completed === true || dbTask.is_completed === "true",
-    }));
+    // --- DEBUG: Lihat apa yang dikirim backend ---
+    console.log("[GET] Data dari Server:", data);
+
+    tasks = data.map((dbTask) => {
+      // LOGIKA "ROBUST" (Tahan Banting)
+      // Apapun formatnya (1, "true", "t", true), kita paksa jadi Boolean TRUE
+      const isCompleted =
+        dbTask.is_completed === true ||
+        dbTask.is_completed === "true" ||
+        dbTask.is_completed === 1 ||
+        dbTask.is_completed === "t";
+
+      return {
+        id: dbTask.task_id,
+        task: dbTask.task_name,
+        category: dbTask.category,
+        date: dbTask.task_date ? dbTask.task_date.split("T")[0] : "",
+        completed: isCompleted, // <--- Pakai hasil konversi di atas
+      };
+    });
 
     renderTasks();
     updateTotals();
