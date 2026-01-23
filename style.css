@@ -1,4 +1,4 @@
-@import url(https://fonts.googleapis.com/css?family=Inter:100,200,300,regular,500,600,700,800,900);
+@import url("https://fonts.googleapis.com/css?family=Inter:100,200,300,regular,500,600,700,800,900");
 
 ::-webkit-scrollbar {
   width: 0;
@@ -44,6 +44,7 @@ body {
   transition: all 0.3s;
 }
 
+/* --- BACKDROP & TRANSITIONS --- */
 .screen-backdrop {
   width: 135%;
   height: 25rem;
@@ -69,6 +70,7 @@ body {
   transform: translate(-50%, -60%);
 }
 
+/* --- HEADER & WELCOME --- */
 .head-wrapper {
   padding: 0 30px;
 }
@@ -114,6 +116,7 @@ body {
   width: 5rem;
 }
 
+/* --- CATEGORIES LIST --- */
 .categories-wrapper {
   margin-top: 1rem;
   padding: 0 30px;
@@ -133,11 +136,16 @@ body {
   background: #fff;
   border-radius: 0.5rem;
   padding: 1.5rem 1rem;
-  cursor: pointer;
+  cursor: grab; /* Cursor grab untuk sortable */
   display: flex;
   justify-content: space-between;
   box-shadow: 0 10px 20px 5px #00000023;
   transition: all 0.3s;
+  position: relative; /* Untuk positioning options */
+}
+
+.category:active {
+  cursor: grabbing;
 }
 
 .category:hover {
@@ -149,6 +157,7 @@ body {
   display: flex;
   gap: 1.5rem;
   align-items: center;
+  pointer-events: none; /* Supaya klik gambar tembus ke div category */
 }
 
 .category .left img {
@@ -171,22 +180,25 @@ body {
   transition: all 0.3s;
 }
 
+/* Tampilkan tombol edit hanya jika di-hover */
 .category:hover .options {
   opacity: 1;
   visibility: visible;
 }
 
-.category .toggle-btn {
-  width: 2rem;
-  cursor: pointer;
-  opacity: 0.6;
+.category .edit-btn:hover {
+  color: #39a6f0;
+  transform: scale(1.1);
 }
 
-.category .toggle-btn:hover {
-  opacity: 1;
+/* Sortable Ghost Class (Efek saat ditarik) */
+.sortable-ghost {
+  opacity: 0.5;
+  background-color: #f9f9f9;
+  border: 2px dashed #39a6f0 !important;
 }
 
-/* Category Screen */
+/* --- CATEGORY SCREEN DETAILS --- */
 .category-screen .head-wrapper {
   display: flex;
   justify-content: space-between;
@@ -215,7 +227,7 @@ body {
   opacity: 0.6;
 }
 
-/* tasks */
+/* --- TASKS LIST --- */
 .tasks-wrapper {
   padding: 0 30px;
   margin-top: 1rem;
@@ -239,11 +251,11 @@ body {
 
 .task {
   display: flex;
-  gap: 0.5rem;
+  gap: 0.8rem;
   align-items: center;
   font-size: 0.8rem;
   font-weight: 500;
-  width: max-content;
+  width: 100%; /* Biar area klik luas */
   cursor: pointer;
 }
 
@@ -251,66 +263,104 @@ body {
   display: none;
 }
 
+/* Checkbox Style */
 .task .checkmark {
+  width: 1.2rem;
+  height: 1.2rem;
+  border-radius: 4px; /* Sedikit rounded */
+  border: 1.5px solid #2e2e2e;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  transition: all 0.3s;
+  flex-shrink: 0; /* Supaya kotak gak gepeng */
+}
+
+.task .checkmark svg {
   width: 1rem;
-  height: 1rem;
-  border-radius: 2px;
-  border: 1px solid #2e2e2e;
+  color: #fff; /* Icon putih */
+  opacity: 0;
+  transition: all 0.3s;
+}
+
+/* LOGIKA CHECKBOX VISUAL */
+
+/* 1. Saat Hover (belum dicentang) - kasih preview abu2 */
+.task:hover .checkmark {
+  background-color: rgba(0, 0, 0, 0.05);
+}
+
+/* 2. Saat Dicentang - Background Hitam, Icon Muncul */
+.task input:checked ~ .checkmark {
+  background-color: #2e2e2e;
+  border-color: #2e2e2e;
+}
+
+.task input:checked ~ .checkmark svg {
+  opacity: 1;
+}
+
+/* 3. Text Coret saat dicentang */
+.task input:checked ~ .task-text-wrapper p {
+  text-decoration: line-through;
+  color: #a0a0a0;
+  transition: 0.3s;
+}
+
+.task input:checked ~ .task-text-wrapper .task-date {
+  opacity: 0.5;
+  text-decoration: line-through;
+}
+
+.task-text-wrapper {
+  display: flex;
+  flex-direction: column;
+}
+
+.task-date {
+  font-size: 0.7rem;
+  color: #888;
+  margin-top: 2px;
+}
+
+/* Task Options (Edit & Delete) */
+.task-options {
+  display: flex;
+  gap: 10px;
+  margin-left: 10px;
+}
+
+.task-wrapper .edit,
+.task-wrapper .delete {
+  width: 2rem;
+  height: 2rem;
+  padding: 0.4rem;
+  border-radius: 50%;
+  color: #2e2e2e;
+  cursor: pointer;
+  background-color: rgba(0, 0, 0, 0.05);
+  opacity: 0; /* Hidden by default */
+  visibility: hidden;
+  transition: all 0.3s;
   display: flex;
   justify-content: center;
   align-items: center;
 }
 
-.task .checkmark svg {
-  width: 1rem;
-  color: #2e2e2e;
-  opacity: 0;
-  transition: all 0.3s;
-}
-
-.task:hover .checkmark svg {
-  opacity: 1;
-}
-
-.task .checkmark svg path {
-  stroke-width: 3;
-}
-
-.task input:checked ~ .checkmark {
-  background-color: #2e2e2e;
-}
-
-.task input:checked ~ .checkmark svg {
-  opacity: 1;
-  color: #fff;
-}
-
-.task input:checked ~ p {
-  text-decoration: line-through;
-  opacity: 0.6;
-}
-
-.task-wrapper .delete {
-  min-width: 2rem;
-  height: 2rem;
-  padding: 0.5rem;
-  border-radius: 50%;
-  color: #2e2e2e;
-  cursor: pointer;
-  background-color: rgba(0, 0, 0, 0.031);
-  opacity: 0;
-  visibility: hidden;
-  transition: all 0.3s;
-}
-
+.task-wrapper:hover .edit,
 .task-wrapper:hover .delete {
   opacity: 1;
   visibility: visible;
 }
 
+.task-wrapper .edit:hover {
+  color: #39a6f0;
+  background-color: rgba(57, 166, 240, 0.1);
+}
+
 .task-wrapper .delete:hover {
   color: red;
-  background-color: rgba(0, 0, 0, 0.1);
+  background-color: rgba(255, 0, 0, 0.1);
 }
 
 .no-tasks {
@@ -320,20 +370,22 @@ body {
   opacity: 0.6;
 }
 
-/* Add Task */
+/* --- ADD TASK BUTTON --- */
 .add-task-btn {
   position: absolute;
-  bottom: 1rem;
-  right: 1rem;
-  width: 3rem;
-  height: 3rem;
+  bottom: 2rem;
+  right: 2rem;
+  width: 3.5rem;
+  height: 3.5rem;
   border-radius: 50%;
   cursor: pointer;
   display: flex;
   align-items: center;
   justify-content: center;
   background-color: #39a6f0;
+  box-shadow: 0 5px 15px rgba(57, 166, 240, 0.4);
   transition: all 0.3s;
+  z-index: 20; /* Di atas segalanya */
 }
 
 .add-task-btn:hover {
@@ -341,9 +393,11 @@ body {
 }
 
 .add-task-btn.active {
-  z-index: 1;
-  bottom: 20rem;
+  z-index: 60; /* Harus lebih tinggi dari modal */
+  bottom: 18rem; /* Geser ke atas saat menu buka */
   transform: rotate(45deg);
+  background-color: #ff5b5b; /* Jadi merah tombol close */
+  box-shadow: none;
 }
 
 .add-task-btn svg {
@@ -351,87 +405,7 @@ body {
   color: #fff;
 }
 
-.add-task {
-  position: absolute;
-  bottom: -100%;
-  left: 0;
-  width: 100%;
-  padding: 20px 30px;
-  transition: all 0.3s;
-}
-
-.add-task.active {
-  bottom: 0;
-}
-
-.add-task .heading {
-  font-size: 1.5rem;
-  margin-bottom: 1rem;
-}
-
-.input-group {
-  position: relative;
-  margin-bottom: 20px;
-}
-
-.input-group input,
-.input-group label {
-  display: block;
-  width: 100%;
-}
-
-.input-group input,
-.input-group select {
-  width: 100%;
-  border: 1px solid #ccc;
-  border-radius: 5px;
-  padding: 10px;
-  font-size: 16px;
-}
-
-.input-group label {
-  width: max-content;
-  padding: 0 5px;
-  margin-top: 5px;
-  font-size: 14px;
-  color: #666;
-  margin-bottom: 5px;
-}
-
-.btns {
-  display: flex;
-  gap: 1rem;
-  justify-content: flex-end;
-  align-items: center;
-}
-
-.btns button {
-  padding: 10px 20px;
-  border-radius: 5px;
-  border: none;
-  cursor: pointer;
-  font-size: 14px;
-  font-weight: 600;
-  transition: all 0.3s;
-  z-index: 1;
-}
-
-button.add-btn {
-  background-color: #39a6f0;
-  color: #fff;
-}
-
-.add-task-backdrop {
-  position: absolute;
-  bottom: 0;
-  left: 50%;
-  transform: translateX(-50%);
-  width: 135%;
-  height: 20rem;
-  border-radius: 50% 50% 0 0;
-  background-color: #fff;
-}
-
+/* --- BLACK BACKDROP (Overlay) --- */
 .black-backdrop {
   position: absolute;
   top: 0;
@@ -439,10 +413,11 @@ button.add-btn {
   width: 100%;
   height: 100%;
   backdrop-filter: blur(5px);
-  background-color: #00000023;
+  background-color: rgba(0, 0, 0, 0.3);
   opacity: 0;
   visibility: hidden;
   transition: all 0.3s;
+  z-index: 40; /* Di bawah Modal, di atas content */
 }
 
 .black-backdrop.active {
@@ -450,100 +425,107 @@ button.add-btn {
   visibility: visible;
 }
 
-.task-content {
-  display: flex;
-  flex-direction: column;
-  margin-left: 10px; /* Supaya tidak nempel checkbox */
-}
-
-.date-text {
-  font-size: 0.8rem;
-  color: #888; /* Warna abu-abu supaya tidak terlalu mencolok */
-  margin-top: 2px;
-}
-
-/* Efek coret saat task selesai */
-.task input:checked ~ .task-text-wrapper p {
-  text-decoration: line-through;
-  color: #8aa6c1; /* Opsional: warna teks jadi agak pudar */
-  transition: all 0.3s ease;
-}
-
-/* Opsional: Kalau mau tanggalnya juga ikut dicoret/pudar */
-.task input:checked ~ .task-text-wrapper .task-date {
-  opacity: 0.5;
-  text-decoration: line-through;
-}
-
-/* Container untuk tombol Edit dan Delete */
-.task-options {
-  display: flex;
-  align-items: center;
-  gap: 12px; /* Jarak antara icon pensil dan sampah */
-  margin-left: auto; /* Supaya dia mentok ke kanan */
-}
-
-/* PENTING: Paksa ukuran icon SVG-nya */
-.edit svg,
-.delete svg {
-  width: 20px; /* Lebar pasti */
-  height: 20px; /* Tinggi pasti */
-  min-width: 20px; /* Jaga-jaga biar gak gepeng */
-  stroke: #555; /* Warna icon (abu-abu gelap) */
-  cursor: pointer;
-  transition: 0.2s;
-}
-
-/* Warna saat mouse diarahkan (Hover) */
-.edit svg:hover {
-  stroke: #5865f2; /* Biru pas hover edit */
-}
-
-.delete svg:hover {
-  stroke: #ff4d4d; /* Merah pas hover delete */
-}
-
-/* Efek saat item sedang diangkat/digeser */
-.sortable-ghost {
-  opacity: 0.5;
-  background-color: #f0f0f0;
-  border: 2px dashed #ccc;
-}
-
-/* Supaya kursor jadi tangan pas hover kategori */
-.category {
-  cursor: grab;
-}
-
-.category:active {
-  cursor: grabbing;
-}
-
-/* --- EDIT CATEGORY MODAL --- */
+/* --- MODALS (ADD TASK & EDIT CATEGORY) --- */
+.add-task,
 .edit-category {
   position: absolute;
   bottom: -100%;
   left: 0;
   width: 100%;
-  height: 100%;
-  z-index: 15;
-  transition: all 0.3s;
+  padding: 30px;
   background-color: #fff;
-  padding: 2rem;
-  box-sizing: border-box;
-  border-radius: 20px 20px 0 0;
+  border-radius: 30px 30px 0 0; /* Rounded atas */
+  transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  z-index: 50; /* Paling atas */
+  box-shadow: 0 -5px 20px rgba(0, 0, 0, 0.1);
 }
+
+.add-task.active,
 .edit-category.active {
   bottom: 0;
 }
 
-/* Tombol Edit Kecil di Kartu Kategori */
-.category .options {
-  z-index: 5;
-  opacity: 0.6;
-  transition: 0.2s;
+/* Buat hiasan backdrop putih (optional, bisa dihapus kalau pakai border-radius di parent) */
+.add-task-backdrop {
+  display: none; /* Saya hide karena sudah pakai border-radius di parent */
 }
-.category .options:hover {
-  opacity: 1;
-  transform: scale(1.1);
+
+.heading {
+  font-size: 1.5rem;
+  margin-bottom: 1.5rem;
+  color: #2e2e2e;
+}
+
+.input-group {
+  position: relative;
+  margin-bottom: 20px;
+}
+
+.input-group label {
+  display: block;
+  font-size: 0.9rem;
+  color: #666;
+  margin-bottom: 5px;
+  font-weight: 500;
+}
+
+.input-group input,
+.input-group select {
+  width: 100%;
+  border: 1px solid #ddd;
+  border-radius: 10px;
+  padding: 12px;
+  font-size: 1rem;
+  outline: none;
+  background: #f8f9fa;
+  transition: 0.3s;
+}
+
+.input-group input:focus,
+.input-group select:focus {
+  border-color: #39a6f0;
+  background: #fff;
+}
+
+.btns {
+  display: flex;
+  gap: 1rem;
+  justify-content: flex-end;
+  align-items: center;
+  margin-top: 2rem;
+}
+
+.btns button {
+  padding: 12px 25px;
+  border-radius: 10px;
+  border: none;
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 600;
+  transition: all 0.3s;
+}
+
+.cancel-btn,
+.cancel-edit-btn {
+  background: transparent;
+  color: #888;
+}
+
+.cancel-btn:hover,
+.cancel-edit-btn:hover {
+  color: #2e2e2e;
+  background: #f0f0f0;
+}
+
+.add-btn,
+.save-edit-btn {
+  background-color: #39a6f0;
+  color: #fff;
+  box-shadow: 0 5px 15px rgba(57, 166, 240, 0.3);
+}
+
+.add-btn:hover,
+.save-edit-btn:hover {
+  background-color: #268bd2;
+  transform: translateY(-2px);
 }
